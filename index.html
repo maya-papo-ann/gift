@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>אשד ומאיה</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600&display=swap">
+<style>
+  @font-face {
+    font-family: "MayaFont";
+    src: url("mayafont.woff2") format("woff2");
+    font-weight: 400;
+    font-display: swap;
+  }
+
+  :root {
+    direction: rtl;
+
+    /* the invitation: cream paper, sage, deep green ink */
+    --paper:     #F7F4EC;
+    --paper-up:  #FFFDF8;
+    --ink:       #2F5D3F;
+    --ink-soft:  #6B7F6C;
+    --sage:      #9DB38F;
+    --sage-deep: #7A9570;
+
+    --sp-2: 12px;
+    --sp-3: 22px;
+    --sp-4: 34px;
+    --sp-5: 48px;
+  }
+
+  html { height: 100%; }
+
+  body {
+    margin: 0;
+    box-sizing: border-box;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding-block: var(--sp-4);
+    padding-inline: 22px;
+    background: var(--paper) url("bg.webp") center / cover no-repeat fixed;
+    color: var(--ink);
+    font-family: "Assistant", system-ui, sans-serif;
+    font-weight: 400;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+  }
+
+  @supports (-webkit-touch-callout: none) {
+    body { background-attachment: scroll; }
+  }
+
+  .sheet {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+  }
+
+  .rise { animation: rise .7s cubic-bezier(.2,.7,.3,1) both; }
+  .rise-2 { animation-delay: .1s; }
+
+  @keyframes rise {
+    from { opacity: .001; transform: translateY(12px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+    padding: 26px 30px 22px;
+    margin: -26px -30px -22px;
+    background: radial-gradient(ellipse 70% 80% at 50% 50%, rgba(250,248,242,.96) 0%, rgba(250,248,242,.9) 45%, rgba(250,248,242,0) 100%);
+  }
+
+  .masthead h1 {
+    margin: 0;
+    font-family: "MayaFont", "Assistant", sans-serif;
+    font-size: clamp(54px, 16vw, 84px);
+    font-weight: 400;
+    line-height: 1;
+    text-wrap: balance;
+  }
+
+  .masthead p {
+    margin: 0;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+  }
+
+  /* ---------- steps ---------- */
+
+  .step { display: flex; flex-direction: column; gap: var(--sp-3); }
+  .step[hidden] { display: none; }
+
+  .prompt {
+    margin: 0;
+    font-family: "MayaFont", "Assistant", sans-serif;
+    font-size: clamp(28px, 7.6vw, 38px);
+    font-weight: 400;
+    line-height: 1.2;
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); align-items: end; }
+
+  /* ---------- who ---------- */
+
+  .who {
+    appearance: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    border-radius: 24px;
+    transition: transform .3s cubic-bezier(.2,.7,.3,1);
+  }
+
+  .who .portrait {
+    width: 100%;
+    max-width: 210px;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 10px 18px rgba(47,93,63,.14));
+    transition: filter .3s ease;
+  }
+
+  .who .name {
+    font-family: "MayaFont", "Assistant", sans-serif;
+    font-size: clamp(34px, 9.5vw, 44px);
+    line-height: 1;
+    transition: color .25s ease;
+  }
+
+  .who:hover,
+  .who:focus-visible { transform: translateY(-6px); outline: none; }
+  .who:hover .portrait,
+  .who:focus-visible .portrait { filter: drop-shadow(0 18px 26px rgba(47,93,63,.22)); }
+  .who:hover .name,
+  .who:focus-visible .name { color: var(--sage-deep); }
+  .who:focus-visible { outline: 2px solid var(--sage-deep); outline-offset: 8px; }
+
+  .nudge { display: flex; justify-content: center; color: var(--sage-deep); }
+  .nudge .arrow { height: 54px; width: auto; display: block; }
+  .nudge-b .arrow { transform: scaleX(-1); }
+
+  /* ---------- how ---------- */
+
+  .chosen { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .flyer { position: fixed; z-index: 20; pointer-events: none; will-change: transform; }
+
+  .thanks {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    animation: thanks-out .5s ease 1.9s both;
+  }
+  .thanks .heart { width: 96px; height: 96px; color: var(--ink); animation: heart-in .7s cubic-bezier(.2,.9,.3,1.4) both; }
+  .thanks .word {
+    margin-block-start: 6px;
+    font-family: "MayaFont", "Assistant", sans-serif;
+    font-size: 40px;
+    color: var(--ink);
+    animation: rise .6s ease .25s both;
+  }
+  @keyframes heart-in  { from { transform: scale(.2); opacity: 0; } 60% { transform: scale(1.12); opacity: 1; } to { transform: scale(1); opacity: 1; } }
+  @keyframes thanks-out { to { opacity: 0; } }
+  .chosen .portrait { width: 120px; height: auto; display: block; }
+
+  .chosen .line { font-size: 14px; letter-spacing: 0.06em; color: var(--ink-soft); }
+
+  .chosen .line b {
+    font-family: "MayaFont", "Assistant", sans-serif;
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: var(--ink);
+    vertical-align: -3px;
+  }
+
+  .pay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 120px;
+    padding: var(--sp-3) var(--sp-2);
+    border: 1.5px solid var(--sage);
+    border-radius: 24px;
+    background: rgba(255,253,248,.88);
+    color: inherit;
+    text-decoration: none;
+    box-shadow: 0 10px 24px -18px rgba(47,93,63,.5);
+    transition: border-color .25s ease, transform .25s cubic-bezier(.2,.7,.3,1), background .25s ease;
+  }
+
+  .pay:hover,
+  .pay:focus-visible {
+    border-color: var(--ink);
+    background: var(--paper-up);
+    transform: translateY(-5px);
+  }
+
+  .pay:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+  .pay .logo { width: auto; height: auto; max-height: 46px; max-width: 82%; display: block; }
+
+
+
+  .back {
+    align-self: center;
+    appearance: none;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    padding: 8px 12px;
+    font-family: "Assistant", sans-serif;
+    font-size: 14px;
+    color: var(--ink-soft);
+    text-decoration: underline;
+    text-underline-offset: 5px;
+    border-radius: 10px;
+  }
+
+  .back:hover, .back:focus-visible { color: var(--ink); outline: none; }
+  .back:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  /* ---------- opening: an envelope, a card rises out of it ---------- */
+
+  .intro {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    cursor: pointer;
+    animation: intro-out .45s ease 2.55s both;
+  }
+
+  .intro svg { width: min(78vw, 300px); height: auto; overflow: visible; }
+
+  .env { transform-box: fill-box; transform-origin: 50% 60%; animation: env-in .55s cubic-bezier(.2,.8,.3,1.25) both; }
+  .flap { transform-box: fill-box; transform-origin: 50% 0; animation: flap-open .6s cubic-bezier(.4,0,.2,1) .75s both; }
+  .seal { animation: seal-off .3s ease .75s both; }
+  .card { animation: card-up .75s cubic-bezier(.2,.7,.3,1) 1.3s both; }
+  .card-text { font-family: "MayaFont", "Assistant", sans-serif; font-size: 34px; fill: var(--ink); }
+
+  @keyframes env-in    { from { opacity: 0; transform: scale(.55) translateY(30px); } to { opacity: 1; transform: none; } }
+  @keyframes flap-open { from { transform: scaleY(1); } to { transform: scaleY(-1); } }
+  @keyframes seal-off  { to { opacity: 0; } }
+  @keyframes card-up   { from { transform: translateY(0); } to { transform: translateY(-96px); } }
+  @keyframes intro-out { to { opacity: 0; visibility: hidden; } }
+
+  body.has-intro .rise   { animation-delay: 2.65s; }
+  body.has-intro .rise-2 { animation-delay: 2.78s; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .intro { display: none; }
+    body.has-intro .rise, body.has-intro .rise-2 { animation-delay: 0s; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rise { animation: none; }
+    .who, .who .portrait, .pay { transition: none; }
+    .who:hover, .who:focus-visible, .pay:hover, .pay:focus-visible { transform: none; }
+  }
+</style>
+</head>
+<body>
+
+
+<div class="intro" id="intro" aria-hidden="true">
+  <svg viewBox="0 0 240 200" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    <g class="env">
+      <!-- envelope back -->
+      <rect x="20" y="70" width="200" height="110" rx="9" fill="#F1EBDB" stroke="#9DB38F" stroke-width="2"/>
+      <!-- flap, closed: hangs down from the top edge -->
+      <path class="flap" d="M20 72 L120 138 L220 72 Z" fill="#E9E2CE" stroke="#9DB38F" stroke-width="2"/>
+      <!-- the card inside -->
+      <g class="card">
+        <rect x="46" y="96" width="148" height="80" rx="6" fill="#FFFDF8" stroke="#9DB38F" stroke-width="1.5"/>
+        <text class="card-text" x="120" y="134" text-anchor="middle" direction="rtl">אשד ומאיה</text>
+        <path d="M113 150c-6 -6 2 -14 7 -7 5 -7 13 1 7 7l-7 7z" fill="#2F5D3F"/>
+      </g>
+      <!-- front pocket -->
+      <path d="M20 86 L120 150 L220 86 V171 a9 9 0 0 1 -9 9 H29 a9 9 0 0 1 -9 -9 Z" fill="#EFE8D6" stroke="#9DB38F" stroke-width="2"/>
+      <!-- sage ribbon seal -->
+      <circle class="seal" cx="120" cy="138" r="9" fill="#9DB38F"/>
+    </g>
+  </svg>
+</div>
+
+<div class="sheet">
+
+  <header class="masthead rise">
+    <h1>אשד ומאיה</h1>
+    <p>תודה על המתנה</p>
+  </header>
+
+  <!-- step 1 -->
+  <section class="step rise rise-2" id="step-who">
+    <h2 class="prompt">למי תרצו להעביר את המתנה</h2>
+
+    <div class="pair">
+      <div class="nudge nudge-a">
+        <svg class="arrow" viewBox="0 0 40 60" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M31 5C37 24 27 40 13 52"/>
+          <path d="M9 43l4 9 9 -1"/>
+        </svg>
+      </div>
+      <div class="nudge nudge-b">
+        <svg class="arrow" viewBox="0 0 40 60" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M31 5C37 24 27 40 13 52"/>
+          <path d="M9 43l4 9 9 -1"/>
+        </svg>
+      </div>
+
+      <button class="who" type="button" id="who-eshed" data-who="eshed">
+        <img class="portrait" src="eshed.webp" alt="" >
+        <span class="name">אשד</span>
+      </button>
+
+      <button class="who" type="button" id="who-maya" data-who="maya">
+        <img class="portrait" src="maya.webp" alt="" >
+        <span class="name">מאיה</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- step 2 -->
+  <section class="step" id="step-how" hidden>
+    <div class="chosen">
+      <span id="chosen-portrait"></span>
+      <span class="line">המתנה בדרך אל <b id="chosen-name"></b></span>
+    </div>
+
+    <h2 class="prompt">איזו אפליקציה נוחה יותר</h2>
+
+    <div class="pair">
+      <a class="pay" id="pay-bit" href="#" target="_blank" rel="noopener">
+        <img class="logo" src="bit.webp" alt="bit" style="max-height:40px">
+      </a>
+
+      <a class="pay" id="pay-paybox" href="#" target="_blank" rel="noopener">
+        <img class="logo" src="paybox.webp" alt="PayBox">
+      </a>
+    </div>
+
+    <button class="back" type="button" id="back">חזרה לבחירה</button>
+  </section>
+</div>
+
+<script>
+  // ponytail: two links per person, hardcoded for a one-off page
+  const LINKS = {
+    eshed: { bit: "REPLACE_ESHED_BIT", paybox: "REPLACE_ESHED_PAYBOX" },
+    maya:  { bit: "REPLACE_MAYA_BIT",  paybox: "REPLACE_MAYA_PAYBOX"  },
+  };
+  const NAMES = { eshed: "אשד", maya: "מאיה" };
+
+  const stepWho = document.getElementById("step-who");
+  const stepHow = document.getElementById("step-how");
+  const chosenName = document.getElementById("chosen-name");
+  const chosenPortrait = document.getElementById("chosen-portrait");
+  const payBit = document.getElementById("pay-bit");
+  const payPaybox = document.getElementById("pay-paybox");
+
+  // a link nobody filled in yet must not navigate
+  function setPay(el, href) {
+    const ready = href && !href.startsWith("REPLACE_");
+    el.href = ready ? href : "#";
+    el.onclick = (e) => { if (!ready) e.preventDefault(); sayThanks(); };
+  }
+
+  // a small heart after the tap, while the app opens
+  function sayThanks() {
+    if (document.querySelector(".thanks")) return;
+    const el = document.createElement("div");
+    el.className = "thanks";
+    el.innerHTML = '<svg class="heart" viewBox="0 0 48 48" fill="currentColor" aria-hidden="true"><path d="M24 42C10 32 4 25 4 16a9 9 0 0 1 16 -5.5A9 9 0 0 1 44 16c0 9 -6 16 -20 26z"/></svg><div class="word">תודה</div>';
+    document.body.append(el);
+    el.addEventListener("animationend", (e) => { if (e.animationName === "thanks-out") el.remove(); });
+  }
+
+  for (const btn of document.querySelectorAll(".who")) {
+    btn.addEventListener("click", () => {
+      const who = btn.dataset.who;
+      chosenName.textContent = NAMES[who];
+      const src = btn.querySelector(".portrait");
+      const from = src.getBoundingClientRect();
+      const target = src.cloneNode(true);
+      chosenPortrait.replaceChildren(target);
+      setPay(payBit, LINKS[who].bit);
+      setPay(payPaybox, LINKS[who].paybox);
+      stepWho.hidden = true;
+      stepHow.hidden = false;
+      stepHow.classList.remove("rise");
+      void stepHow.offsetWidth;
+      stepHow.classList.add("rise");
+      // the portrait flies from where it was to where it lands
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        const to = target.getBoundingClientRect();
+        const flyer = src.cloneNode(true);
+        flyer.className = "flyer";
+        Object.assign(flyer.style, { left: from.left + "px", top: from.top + "px", width: from.width + "px", height: "auto" });
+        document.body.append(flyer);
+        target.style.visibility = "hidden";
+        flyer.animate(
+          [{ transform: "translate(0,0) scale(1)" },
+           { transform: `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(${to.width / from.width})` }],
+          { duration: 650, easing: "cubic-bezier(.2,.7,.3,1)", fill: "forwards" }
+        ).onfinish = () => { target.style.visibility = ""; flyer.remove(); };
+      }
+      payBit.focus();
+    });
+  }
+
+  // opening envelope: a tap skips it, reduced-motion skips it, and it clears itself when done
+  const intro = document.getElementById("intro");
+  document.body.classList.add("has-intro");
+  function endIntro() {
+    if (!intro.isConnected) return;
+    intro.remove();
+    document.body.classList.remove("has-intro");
+  }
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) endIntro();
+  intro.addEventListener("click", endIntro);
+  intro.addEventListener("animationend", (e) => { if (e.animationName === "intro-out") endIntro(); });
+
+  document.getElementById("back").addEventListener("click", () => {
+    stepHow.hidden = true;
+    stepWho.hidden = false;
+    document.getElementById("who-eshed").focus();
+  });
+</script>
+
+</body>
+</html>
