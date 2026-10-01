@@ -303,26 +303,12 @@
   }
   .card .ct { font-family: "MayaFont", "Assistant", sans-serif; font-size: clamp(28px, 8.6vw, 36px); color: var(--ink); line-height: 1; }
   .card .ch { width: 22px; height: 22px; color: var(--ink); }
-  .sparks span {
-    position: absolute; left: 50%; top: 42%; width: 6px; height: 6px; margin: -3px 0 0 -3px;
-    border-radius: 50%;
-    background: var(--sage-deep);
-    opacity: 0;
-    animation: spark 1.4s ease-out 2.05s both;
-  }
-  .sparks span:nth-child(1) { --a: -20deg; }  .sparks span:nth-child(2) { --a: 25deg; }
-  .sparks span:nth-child(3) { --a: -60deg; }  .sparks span:nth-child(4) { --a: 60deg; }
-  .sparks span:nth-child(5) { --a: -95deg; width: 4px; height: 4px; }
-  .sparks span:nth-child(6) { --a: 100deg; width: 4px; height: 4px; }
-  .sparks span:nth-child(7) { --a: 5deg; width: 4px; height: 4px; animation-delay: 2.2s; }
-  .sparks span:nth-child(8) { --a: -40deg; width: 3px; height: 3px; animation-delay: 2.3s; }
 
   @keyframes env-in     { from { opacity: 0; transform: translateY(34px) scale(.84); } to { opacity: 1; transform: none; } }
   @keyframes flap-lift  { from { transform: rotateX(0); } to { transform: rotateX(90deg); } }
   @keyframes flap-stand { from { transform: rotateX(-90deg); } to { transform: rotateX(0); } }
   @keyframes glow       { 0% { opacity: 0; transform: translateY(-50%) scale(.5); } 30% { opacity: .9; } 100% { opacity: 0; transform: translateY(-50%) scale(1.25); } }
   @keyframes card-up    { from { transform: translateY(44%); } to { transform: translateY(-46%); } }
-  @keyframes spark      { 0% { opacity: 0; transform: rotate(var(--a)) translateY(0) scale(.5); } 25% { opacity: .95; } 100% { opacity: 0; transform: rotate(var(--a)) translateY(-84px) scale(1); } }
   @keyframes intro-out  { to { opacity: 0; visibility: hidden; } }
 
   body.has-intro .rise { animation-play-state: paused; }
@@ -353,7 +339,6 @@
     </div></div>
     <img class="layer env-front" src="env-front.webp" alt="">
     <img class="layer flap-closed" src="flap-closed.webp" alt="">
-    <div class="sparks"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
   </div>
 </div>
 
@@ -501,34 +486,53 @@
     });
   }
 
-  // ---- soft sounds, synthesised, no files; browsers allow them only after a touch ----
-  let ac;
+  // ---- soft, natural sounds, synthesised on the spot; browsers allow them only after a touch ----
+  let ac, verb;
   function tone(fn) {
     try {
       ac ??= new (window.AudioContext || window.webkitAudioContext)();
       if (ac.state === "suspended") ac.resume();
+      if (!verb) {                                   // a small warm room, built from decaying noise
+        const n = Math.floor(ac.sampleRate * 1.8), buf = ac.createBuffer(2, n, ac.sampleRate);
+        for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3); }
+        verb = ac.createConvolver(); verb.buffer = buf;
+        const wet = ac.createGain(); wet.gain.value = .35; verb.connect(wet).connect(ac.destination);
+      }
       fn(ac, ac.currentTime);
     } catch {}
   }
-  function pluck(f0 = 660, f1 = 520) {   // a soft tap
+  function noise(ac, seconds) {
+    const n = Math.floor(ac.sampleRate * seconds), buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    const src = ac.createBufferSource(); src.buffer = buf; return src;
+  }
+  function paper() {            // a fingertip touching paper
     tone((ac, t) => {
-      const o = ac.createOscillator(); o.type = "sine";
-      o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + .12);
-      const g = ac.createGain(); g.gain.setValueAtTime(.0001, t);
-      g.gain.exponentialRampToValueAtTime(.3, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + .26);
-      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + .22);
+      const src = noise(ac, .09);
+      const f = ac.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 1500; f.Q.value = .8;
+      const g = ac.createGain(); g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(.22, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + .09);
+      src.connect(f).connect(g); g.connect(ac.destination); g.connect(verb); src.start(t);
+      const o = ac.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(190, t); o.frequency.exponentialRampToValueAtTime(120, t + .07);
+      const og = ac.createGain(); og.gain.setValueAtTime(.0001, t); og.gain.exponentialRampToValueAtTime(.12, t + .006); og.gain.exponentialRampToValueAtTime(.0001, t + .08);
+      o.connect(og).connect(ac.destination); o.start(t); o.stop(t + .1);
     });
   }
-  function chime() {            // two gentle notes with the heart
+  function harp(freq, at, level) {   // a plucked string: a burst of noise circling through a short delay
     tone((ac, t) => {
-      for (const [f, at] of [[659.25, 0], [783.99, .16]]) {
-        const o = ac.createOscillator(); o.type = "sine"; o.frequency.value = f;
-        const g = ac.createGain(); g.gain.setValueAtTime(.0001, t + at);
-        g.gain.exponentialRampToValueAtTime(.26, t + at + .02); g.gain.exponentialRampToValueAtTime(.0001, t + at + .8);
-        o.connect(g).connect(ac.destination); o.start(t + at); o.stop(t + at + .75);
-      }
+      t += at;
+      const burst = noise(ac, .012);
+      const delay = ac.createDelay(); delay.delayTime.value = 1 / freq;
+      const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2600;
+      const fb = ac.createGain(); fb.gain.value = .988;
+      const out = ac.createGain(); out.gain.setValueAtTime(level, t); out.gain.exponentialRampToValueAtTime(.0001, t + 2.2);
+      burst.connect(delay); delay.connect(lp); lp.connect(fb); fb.connect(delay);
+      lp.connect(out); out.connect(ac.destination); out.connect(verb);
+      burst.start(t); setTimeout(() => { fb.gain.value = 0; }, (at + 2.4) * 1000);
     });
   }
+  function pluck() { paper(); }
+  function chime() { harp(659.25, 0, .5); harp(783.99, .18, .42); harp(1046.5, .36, .3); }
 
   // ---- opening: runs on its own; a tap skips; reduced-motion skips ----
   const intro = document.getElementById("intro");
@@ -543,7 +547,7 @@
   intro.addEventListener("animationend", (e) => { if (e.animationName === "intro-out") endIntro(); });
 
   document.getElementById("back").addEventListener("click", () => {
-    pluck(520, 600);
+    paper();
     stepHow.hidden = true;
     stepWho.hidden = false;
     for (const a of stepWho.getAnimations()) a.cancel();
