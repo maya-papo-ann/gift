@@ -251,7 +251,7 @@
   .back:hover, .back:focus-visible { color: var(--ink); outline: none; }
   .back:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
-  /* ---------- opening: an envelope, a card rises out of it ---------- */
+  /* ---------- opening: a sealed envelope, a touch opens it, a card rises out ---------- */
 
   .intro {
     position: fixed;
@@ -259,31 +259,45 @@
     z-index: 10;
     display: grid;
     place-items: center;
+    align-content: center;
+    gap: 18px;
     padding: 24px;
     cursor: pointer;
-    animation: intro-out .45s ease 2.55s both;
+    -webkit-tap-highlight-color: transparent;
   }
+  .intro.open { animation: intro-out .55s ease 1.55s both; }
 
   .intro svg { width: min(78vw, 300px); height: auto; overflow: visible; }
+  .intro:not(.open) svg { animation: bob 2.8s ease-in-out .7s infinite; }
 
-  .env { transform-box: fill-box; transform-origin: 50% 60%; animation: env-in .55s cubic-bezier(.2,.8,.3,1.25) both; }
-  .flap { transform-box: fill-box; transform-origin: 50% 0; animation: flap-open .6s cubic-bezier(.4,0,.2,1) .75s both; }
-  .seal { animation: seal-off .3s ease .75s both; }
-  .card { animation: card-up .75s cubic-bezier(.2,.7,.3,1) 1.3s both; }
+  .intro .hint {
+    font-family: "Assistant", sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    color: var(--ink-soft);
+    animation: rise .6s ease .7s both;
+  }
+  .intro.open .hint { animation: fade .25s ease both; }
+
+  .env { transform-box: fill-box; transform-origin: 50% 60%; animation: env-in .6s cubic-bezier(.2,.8,.2,1.15) both; }
+  .flap { transform-box: fill-box; transform-origin: 50% 0; }
+  .intro.open .flap { animation: flap-open .55s cubic-bezier(.5,0,.15,1) both; }
+  .intro.open .seal { animation: fade .25s ease both; }
+  .intro.open .card { animation: card-up .8s cubic-bezier(.2,.9,.2,1) .4s both; }
   .card-text { font-family: "MayaFont", "Assistant", sans-serif; font-size: 34px; fill: var(--ink); }
 
-  @keyframes env-in    { from { opacity: 0; transform: scale(.55) translateY(30px); } to { opacity: 1; transform: none; } }
+  @keyframes env-in    { from { opacity: 0; transform: scale(.6) translateY(24px); } to { opacity: 1; transform: none; } }
+  @keyframes bob       { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
   @keyframes flap-open { from { transform: scaleY(1); } to { transform: scaleY(-1); } }
-  @keyframes seal-off  { to { opacity: 0; } }
+  @keyframes fade      { to { opacity: 0; } }
   @keyframes card-up   { from { transform: translateY(0); } to { transform: translateY(-96px); } }
   @keyframes intro-out { to { opacity: 0; visibility: hidden; } }
 
-  body.has-intro .rise   { animation-delay: 2.65s; }
-  body.has-intro .rise-2 { animation-delay: 2.78s; }
+  body.has-intro .rise { animation-play-state: paused; }
 
   @media (prefers-reduced-motion: reduce) {
     .intro { display: none; }
-    body.has-intro .rise, body.has-intro .rise-2 { animation-delay: 0s; }
+    body.has-intro .rise { animation-play-state: running; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -315,6 +329,7 @@
       <circle class="seal" cx="120" cy="138" r="9" fill="#9DB38F"/>
     </g>
   </svg>
+  <div class="hint">נגיעה לפתיחה</div>
 </div>
 
 <div class="sheet">
@@ -402,6 +417,7 @@
   // a small heart after the tap, while the app opens
   function sayThanks() {
     if (document.querySelector(".thanks")) return;
+    chime();
     const el = document.createElement("div");
     el.className = "thanks";
     el.innerHTML = '<svg class="heart" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M50 88C32 72 10 56 12 34c2 -16 20 -22 32 -10 3 3 5 7 6 10 2 -4 5 -8 9 -11 14 -10 30 -1 29 15 -1 20 -22 38 -36 52"/></svg><div class="word">תודה</div>';
@@ -416,6 +432,7 @@
   for (const btn of document.querySelectorAll(".who")) {
     btn.addEventListener("click", async () => {
       const who = btn.dataset.who;
+      pluck();
       const src = btn.querySelector(".portrait");
       chosenName.textContent = NAMES[who];
       const target = src.cloneNode(true);
@@ -460,7 +477,48 @@
     });
   }
 
-  // opening envelope: a tap skips it, reduced-motion skips it, and it clears itself when done
+  // ---- soft sounds, synthesised, no files; browsers allow them only after a touch ----
+  let ac;
+  function tone(fn) {
+    try {
+      ac ??= new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === "suspended") ac.resume();
+      fn(ac, ac.currentTime);
+    } catch {}
+  }
+  function paper() {            // a short, airy slide of paper
+    tone((ac, t) => {
+      const len = Math.floor(ac.sampleRate * 0.45), buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const src = ac.createBufferSource(); src.buffer = buf;
+      const f = ac.createBiquadFilter(); f.type = "bandpass"; f.Q.value = 1.1;
+      f.frequency.setValueAtTime(600, t); f.frequency.exponentialRampToValueAtTime(2800, t + .4);
+      const g = ac.createGain(); g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(.08, t + .08); g.gain.exponentialRampToValueAtTime(.0001, t + .45);
+      src.connect(f).connect(g).connect(ac.destination); src.start(t);
+    });
+  }
+  function pluck(f0 = 660, f1 = 520) {   // a soft tap
+    tone((ac, t) => {
+      const o = ac.createOscillator(); o.type = "sine";
+      o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + .12);
+      const g = ac.createGain(); g.gain.setValueAtTime(.0001, t);
+      g.gain.exponentialRampToValueAtTime(.06, t + .015); g.gain.exponentialRampToValueAtTime(.0001, t + .2);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + .22);
+    });
+  }
+  function chime() {            // two gentle notes with the heart
+    tone((ac, t) => {
+      for (const [f, at] of [[659.25, 0], [783.99, .16]]) {
+        const o = ac.createOscillator(); o.type = "sine"; o.frequency.value = f;
+        const g = ac.createGain(); g.gain.setValueAtTime(.0001, t + at);
+        g.gain.exponentialRampToValueAtTime(.05, t + at + .02); g.gain.exponentialRampToValueAtTime(.0001, t + at + .7);
+        o.connect(g).connect(ac.destination); o.start(t + at); o.stop(t + at + .75);
+      }
+    });
+  }
+
+  // ---- opening: the envelope waits for a touch; a second touch skips; reduced-motion skips ----
   const intro = document.getElementById("intro");
   document.body.classList.add("has-intro");
   function endIntro() {
@@ -469,10 +527,15 @@
     document.body.classList.remove("has-intro");
   }
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) endIntro();
-  intro.addEventListener("click", endIntro);
+  intro.addEventListener("click", () => {
+    if (intro.classList.contains("open")) return endIntro();
+    paper();
+    intro.classList.add("open");
+  });
   intro.addEventListener("animationend", (e) => { if (e.animationName === "intro-out") endIntro(); });
 
   document.getElementById("back").addEventListener("click", () => {
+    pluck(520, 600);
     stepHow.hidden = true;
     stepWho.hidden = false;
     for (const a of stepWho.getAnimations()) a.cancel();
