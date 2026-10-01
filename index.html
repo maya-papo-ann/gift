@@ -460,6 +460,18 @@
     });
   }
 
+  // opening envelope: a tap skips it, reduced-motion skips it, and it clears itself when done
+  const intro = document.getElementById("intro");
+  document.body.classList.add("has-intro");
+  function endIntro() {
+    if (!intro.isConnected) return;
+    intro.remove();
+    document.body.classList.remove("has-intro");
+  }
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) endIntro();
+  intro.addEventListener("click", endIntro);
+  intro.addEventListener("animationend", (e) => { if (e.animationName === "intro-out") endIntro(); });
+
   document.getElementById("back").addEventListener("click", () => {
     stepHow.hidden = true;
     stepWho.hidden = false;
