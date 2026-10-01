@@ -166,7 +166,7 @@
   /* ---------- how ---------- */
 
   .chosen { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-  .flyer { position: fixed; z-index: 20; pointer-events: none; will-change: transform; }
+  .flyer { position: fixed; z-index: 20; pointer-events: none; will-change: transform; transform-origin: 0 0; }
 
   .thanks {
     position: fixed;
@@ -361,7 +361,7 @@
       <span class="line">המתנה בדרך אל <b id="chosen-name"></b></span>
     </div>
 
-    <h2 class="prompt">איזו אפליקציה נוחה יותר</h2>
+    <h2 class="prompt">ביט או פייבוקס</h2>
 
     <div class="pair">
       <a class="pay" id="pay-bit" href="#" target="_blank" rel="noopener">
@@ -409,54 +409,62 @@
     el.addEventListener("animationend", (e) => { if (e.animationName === "thanks-out") el.remove(); });
   }
 
+  const masthead = document.querySelector(".masthead");
+  const EASE = "cubic-bezier(.2,.7,.3,1)";
+  const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
   for (const btn of document.querySelectorAll(".who")) {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       const who = btn.dataset.who;
-      chosenName.textContent = NAMES[who];
       const src = btn.querySelector(".portrait");
-      const from = src.getBoundingClientRect();
+      chosenName.textContent = NAMES[who];
       const target = src.cloneNode(true);
       chosenPortrait.replaceChildren(target);
       setPay(payBit, LINKS[who].bit);
       setPay(payPaybox, LINKS[who].paybox);
+
+      if (reduced()) { stepWho.hidden = true; stepHow.hidden = false; payBit.focus(); return; }
+
+      // 1. the chosen portrait lifts off; the rest of the first screen fades
+      const from = src.getBoundingClientRect();
+      const headFrom = masthead.getBoundingClientRect();
+      const flyer = src.cloneNode(true);
+      flyer.className = "flyer";
+      Object.assign(flyer.style, { left: from.left + "px", top: from.top + "px", width: from.width + "px", height: "auto" });
+      document.body.append(flyer);
+      src.style.visibility = "hidden";
+      await stepWho.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, easing: "ease-out", fill: "forwards" }).finished;
+
+      // 2. swap screens underneath, then glide everything to its new place
       stepWho.hidden = true;
       stepHow.hidden = false;
-      stepHow.classList.remove("rise");
-      void stepHow.offsetWidth;
-      stepHow.classList.add("rise");
-      // the portrait flies from where it was to where it lands
-      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        const to = target.getBoundingClientRect();
-        const flyer = src.cloneNode(true);
-        flyer.className = "flyer";
-        Object.assign(flyer.style, { left: from.left + "px", top: from.top + "px", width: from.width + "px", height: "auto" });
-        document.body.append(flyer);
-        target.style.visibility = "hidden";
-        flyer.animate(
-          [{ transform: "translate(0,0) scale(1)" },
-           { transform: `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(${to.width / from.width})` }],
-          { duration: 650, easing: "cubic-bezier(.2,.7,.3,1)", fill: "forwards" }
-        ).onfinish = () => { target.style.visibility = ""; flyer.remove(); };
+      const to = target.getBoundingClientRect();
+      const headTo = masthead.getBoundingClientRect();
+      target.style.visibility = "hidden";
+      const dh = headFrom.top - headTo.top;
+      if (dh) masthead.animate([{ transform: `translateY(${dh}px)` }, { transform: "none" }], { duration: 600, easing: EASE });
+      for (const el of [stepHow.querySelector(".chosen .line"), ...[...stepHow.children].filter(e => !e.classList.contains("chosen"))]) {
+        el.animate([{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }],
+                   { duration: 450, delay: 260, easing: "ease-out", fill: "backwards" });
       }
-      payBit.focus();
+      flyer.animate(
+        [{ transform: "translate(0,0) scale(1)" },
+         { transform: `translate(${to.left - from.left}px, ${to.top - from.top}px) scale(${to.width / from.width})` }],
+        { duration: 600, easing: EASE, fill: "forwards" }
+      ).onfinish = () => {
+        target.style.visibility = "";
+        flyer.remove();
+        src.style.visibility = "";
+        payBit.focus();
+      };
     });
   }
-
-  // opening envelope: a tap skips it, reduced-motion skips it, and it clears itself when done
-  const intro = document.getElementById("intro");
-  document.body.classList.add("has-intro");
-  function endIntro() {
-    if (!intro.isConnected) return;
-    intro.remove();
-    document.body.classList.remove("has-intro");
-  }
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) endIntro();
-  intro.addEventListener("click", endIntro);
-  intro.addEventListener("animationend", (e) => { if (e.animationName === "intro-out") endIntro(); });
 
   document.getElementById("back").addEventListener("click", () => {
     stepHow.hidden = true;
     stepWho.hidden = false;
+    for (const a of stepWho.getAnimations()) a.cancel();
+    if (!reduced()) stepWho.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: "ease-out" });
     document.getElementById("who-eshed").focus();
   });
 </script>
