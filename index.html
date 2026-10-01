@@ -427,7 +427,6 @@
   // a small heart after the tap, while the app opens
   function sayThanks() {
     if (document.querySelector(".thanks")) return;
-    chime();
     const el = document.createElement("div");
     el.className = "thanks";
     el.innerHTML = '<svg class="heart" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M50 88C32 72 10 56 12 34c2 -16 20 -22 32 -10 3 3 5 7 6 10 2 -4 5 -8 9 -11 14 -10 30 -1 29 15 -1 20 -22 38 -36 52"/></svg><div class="word">תודה</div>';
@@ -442,7 +441,6 @@
   for (const btn of document.querySelectorAll(".who")) {
     btn.addEventListener("click", async () => {
       const who = btn.dataset.who;
-      pluck();
       const src = btn.querySelector(".portrait");
       chosenName.textContent = NAMES[who];
       const target = src.cloneNode(true);
@@ -486,54 +484,6 @@
     });
   }
 
-  // ---- soft, natural sounds, synthesised on the spot; browsers allow them only after a touch ----
-  let ac, verb;
-  function tone(fn) {
-    try {
-      ac ??= new (window.AudioContext || window.webkitAudioContext)();
-      if (ac.state === "suspended") ac.resume();
-      if (!verb) {                                   // a small warm room, built from decaying noise
-        const n = Math.floor(ac.sampleRate * 1.8), buf = ac.createBuffer(2, n, ac.sampleRate);
-        for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3); }
-        verb = ac.createConvolver(); verb.buffer = buf;
-        const wet = ac.createGain(); wet.gain.value = .35; verb.connect(wet).connect(ac.destination);
-      }
-      fn(ac, ac.currentTime);
-    } catch {}
-  }
-  function noise(ac, seconds) {
-    const n = Math.floor(ac.sampleRate * seconds), buf = ac.createBuffer(1, n, ac.sampleRate), d = buf.getChannelData(0);
-    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
-    const src = ac.createBufferSource(); src.buffer = buf; return src;
-  }
-  function paper() {            // a fingertip touching paper
-    tone((ac, t) => {
-      const src = noise(ac, .09);
-      const f = ac.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 1500; f.Q.value = .8;
-      const g = ac.createGain(); g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(.22, t + .008); g.gain.exponentialRampToValueAtTime(.0001, t + .09);
-      src.connect(f).connect(g); g.connect(ac.destination); g.connect(verb); src.start(t);
-      const o = ac.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(190, t); o.frequency.exponentialRampToValueAtTime(120, t + .07);
-      const og = ac.createGain(); og.gain.setValueAtTime(.0001, t); og.gain.exponentialRampToValueAtTime(.12, t + .006); og.gain.exponentialRampToValueAtTime(.0001, t + .08);
-      o.connect(og).connect(ac.destination); o.start(t); o.stop(t + .1);
-    });
-  }
-  function harp(freq, at, level) {   // a plucked string: a burst of noise circling through a short delay
-    tone((ac, t) => {
-      t += at;
-      const burst = noise(ac, .012);
-      const delay = ac.createDelay(); delay.delayTime.value = 1 / freq;
-      const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2600;
-      const fb = ac.createGain(); fb.gain.value = .988;
-      const out = ac.createGain(); out.gain.setValueAtTime(level, t); out.gain.exponentialRampToValueAtTime(.0001, t + 2.2);
-      burst.connect(delay); delay.connect(lp); lp.connect(fb); fb.connect(delay);
-      lp.connect(out); out.connect(ac.destination); out.connect(verb);
-      burst.start(t); setTimeout(() => { fb.gain.value = 0; }, (at + 2.4) * 1000);
-    });
-  }
-  function pluck() { paper(); }
-  function chime() { harp(659.25, 0, .5); harp(783.99, .18, .42); harp(1046.5, .36, .3); }
-
   // ---- opening: runs on its own; a tap skips; reduced-motion skips ----
   const intro = document.getElementById("intro");
   document.body.classList.add("has-intro");
@@ -547,7 +497,6 @@
   intro.addEventListener("animationend", (e) => { if (e.animationName === "intro-out") endIntro(); });
 
   document.getElementById("back").addEventListener("click", () => {
-    paper();
     stepHow.hidden = true;
     stepWho.hidden = false;
     for (const a of stepWho.getAnimations()) a.cancel();
