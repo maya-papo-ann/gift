@@ -1,3 +1,9 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
 <title>אשד ומאיה</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600&display=swap">
 <style>
@@ -25,7 +31,7 @@
     --sp-5: 48px;
   }
 
-  html { height: 100%; }
+  html { height: 100%; overflow-x: clip; }
 
   body {
     margin: 0;
@@ -41,7 +47,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   @supports (-webkit-touch-callout: none) {
@@ -59,7 +65,7 @@
   .sheet::before {
     content: "";
     position: absolute;
-    inset: -90px -70px;
+    inset: -90px -22px;
     z-index: -1;
     background: radial-gradient(ellipse 68% 66% at 50% 50%, rgba(247,244,236,.95) 0, rgba(247,244,236,.9) 40%, rgba(247,244,236,.6) 62%, rgba(247,244,236,.22) 82%, rgba(247,244,236,0) 100%);
   }
@@ -260,6 +266,7 @@
     place-items: center;
     padding: 24px;
     cursor: pointer;
+    overflow: hidden;
     -webkit-tap-highlight-color: transparent;
     background: radial-gradient(circle at 50% 50%, rgba(247,244,236,.94) 0, rgba(247,244,236,.6) 34%, rgba(247,244,236,0) 64%);
     animation: intro-out .9s ease 4.4s both;
@@ -331,6 +338,9 @@
     .who:hover, .who:focus-visible, .pay:hover, .pay:focus-visible { transform: none; }
   }
 </style>
+</head>
+<body>
+
 
 <div class="intro" id="intro" aria-hidden="true">
   <div class="stage">
@@ -505,7 +515,7 @@
       const o = ac.createOscillator(); o.type = "sine";
       o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + .12);
       const g = ac.createGain(); g.gain.setValueAtTime(.0001, t);
-      g.gain.exponentialRampToValueAtTime(.06, t + .015); g.gain.exponentialRampToValueAtTime(.0001, t + .2);
+      g.gain.exponentialRampToValueAtTime(.3, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + .26);
       o.connect(g).connect(ac.destination); o.start(t); o.stop(t + .22);
     });
   }
@@ -514,7 +524,7 @@
       for (const [f, at] of [[659.25, 0], [783.99, .16]]) {
         const o = ac.createOscillator(); o.type = "sine"; o.frequency.value = f;
         const g = ac.createGain(); g.gain.setValueAtTime(.0001, t + at);
-        g.gain.exponentialRampToValueAtTime(.05, t + at + .02); g.gain.exponentialRampToValueAtTime(.0001, t + at + .7);
+        g.gain.exponentialRampToValueAtTime(.26, t + at + .02); g.gain.exponentialRampToValueAtTime(.0001, t + at + .8);
         o.connect(g).connect(ac.destination); o.start(t + at); o.stop(t + at + .75);
       }
     });
@@ -540,3 +550,6 @@
     if (!reduced()) stepWho.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: "ease-out" });
   });
 </script>
+
+</body>
+</html>
