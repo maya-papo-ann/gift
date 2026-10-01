@@ -173,8 +173,10 @@
     inset: 0;
     z-index: 30;
     display: grid;
-    place-items: center;
+    align-content: center;
+    justify-items: center;
     pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, rgba(247,244,236,.95) 0, rgba(247,244,236,.8) 26%, rgba(247,244,236,0) 58%);
     animation: thanks-out .5s ease 1.9s both;
   }
   .thanks .heart { width: 96px; height: 96px; color: var(--ink); animation: heart-in .7s cubic-bezier(.2,.9,.3,1.4) both; }
