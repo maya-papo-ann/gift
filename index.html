@@ -283,7 +283,7 @@
   .card {
     position: absolute; left: 19.3%; width: 61.4%; aspect-ratio: 1.591; bottom: -1%;
     background: url("card.webp") center / 100% 100% no-repeat;
-    display: grid; place-items: center; align-content: center; gap: 2px;
+    display: grid; justify-items: center; align-content: start; gap: 4px; padding-top: 6%; box-sizing: border-box;
     filter: drop-shadow(0 10px 16px rgba(47,93,63,.28));
     transform: translateY(104%);
     animation: card-up 1.6s cubic-bezier(.2,.9,.2,1) 2s both;
@@ -306,7 +306,7 @@
 
   @keyframes env-in    { from { opacity: 0; transform: translateY(34px) scale(.84); } to { opacity: 1; transform: none; } }
   @keyframes fade-in   { to { opacity: 1; } }
-  @keyframes card-up   { from { transform: translateY(104%); } to { transform: translateY(64%); } }
+  @keyframes card-up   { from { transform: translateY(104%); } to { transform: translateY(54%); } }
   @keyframes spark     { 0% { opacity: 0; transform: rotate(var(--a)) translateY(0) scale(.5); } 25% { opacity: .95; } 100% { opacity: 0; transform: rotate(var(--a)) translateY(-84px) scale(1); } }
   @keyframes intro-out { to { opacity: 0; visibility: hidden; } }
 
