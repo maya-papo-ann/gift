@@ -1,3 +1,9 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
 <title>אשד ומאיה</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600&display=swap">
 <style>
@@ -262,7 +268,7 @@
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     background: radial-gradient(circle at 50% 50%, rgba(247,244,236,.94) 0, rgba(247,244,236,.6) 34%, rgba(247,244,236,0) 64%);
-    animation: intro-out .8s ease 3.8s both;
+    animation: intro-out .9s ease 4s both;
   }
   .stage {
     position: relative;
@@ -275,15 +281,15 @@
   /* the card is in front of everything, but only visible above the envelope's top edge */
   .slot { position: absolute; left: -20%; right: -20%; top: -70%; height: 111.97%; overflow: hidden; }
   .card {
-    position: absolute; left: 35%; width: 30%; aspect-ratio: 1.591; bottom: -1%;
+    position: absolute; left: 19.3%; width: 61.4%; aspect-ratio: 1.591; bottom: -1%;
     background: url("card.webp") center / 100% 100% no-repeat;
     display: grid; place-items: center; align-content: center; gap: 2px;
     filter: drop-shadow(0 10px 16px rgba(47,93,63,.28));
     transform: translateY(104%);
-    animation: card-up 1.5s cubic-bezier(.2,.9,.2,1) 2s both, card-away .8s ease-in 3.5s forwards;
+    animation: card-up 1.6s cubic-bezier(.2,.9,.2,1) 2s both;
   }
-  .card .ct { font-family: "MayaFont", "Assistant", sans-serif; font-size: clamp(20px, 6.6vw, 27px); color: var(--ink); line-height: 1; }
-  .card .ch { width: 16px; height: 16px; color: var(--ink); }
+  .card .ct { font-family: "MayaFont", "Assistant", sans-serif; font-size: clamp(28px, 8.6vw, 36px); color: var(--ink); line-height: 1; }
+  .card .ch { width: 22px; height: 22px; color: var(--ink); }
   .sparks span {
     position: absolute; left: 50%; top: 74%; width: 6px; height: 6px; margin: -3px 0 0 -3px;
     border-radius: 50%;
@@ -300,8 +306,7 @@
 
   @keyframes env-in    { from { opacity: 0; transform: translateY(34px) scale(.84); } to { opacity: 1; transform: none; } }
   @keyframes fade-in   { to { opacity: 1; } }
-  @keyframes card-up   { from { transform: translateY(104%); } to { transform: translateY(-62%); } }
-  @keyframes card-away { from { transform: translateY(-62%) scale(1); opacity: 1; } to { transform: translateY(-96%) scale(1.14); opacity: 0; } }
+  @keyframes card-up   { from { transform: translateY(104%); } to { transform: translateY(-52%); } }
   @keyframes spark     { 0% { opacity: 0; transform: rotate(var(--a)) translateY(0) scale(.5); } 25% { opacity: .95; } 100% { opacity: 0; transform: rotate(var(--a)) translateY(-84px) scale(1); } }
   @keyframes intro-out { to { opacity: 0; visibility: hidden; } }
 
@@ -318,6 +323,9 @@
     .who:hover, .who:focus-visible, .pay:hover, .pay:focus-visible { transform: none; }
   }
 </style>
+</head>
+<body>
+
 
 <div class="intro" id="intro" aria-hidden="true">
   <div class="stage">
@@ -524,3 +532,6 @@
     if (!reduced()) stepWho.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: "ease-out" });
   });
 </script>
+
+</body>
+</html>
