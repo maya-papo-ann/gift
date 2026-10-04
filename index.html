@@ -236,6 +236,10 @@
 
   .pay .logo { width: auto; height: auto; max-height: 46px; max-width: 82%; display: block; }
 
+  .pay-card { flex-direction: row; gap: 14px; min-height: 0; padding: 16px 22px; }
+  .pay-card .mark { width: 40px; height: auto; color: var(--sage-deep); flex: none; }
+  .pay-card .label { font-family: "MayaFont", "Assistant", sans-serif; font-size: clamp(26px, 7vw, 32px); line-height: 1; color: var(--ink); }
+
 
 
   .back {
@@ -398,6 +402,16 @@
       </a>
     </div>
 
+    <a class="pay pay-card" id="pay-card" href="#" target="_blank" rel="noopener">
+      <svg class="mark" viewBox="0 0 48 34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="2.5" y="3" width="43" height="28" rx="5"/>
+        <path d="M2.5 12h43"/>
+        <path d="M9 23h9"/>
+        <rect x="31" y="20" width="8" height="5.5" rx="1.5"/>
+      </svg>
+      <span class="label">תשלום באשראי</span>
+    </a>
+
     <button class="back" type="button" id="back">חזרה לבחירה</button>
   </section>
 </div>
@@ -405,8 +419,8 @@
 <script>
   // ponytail: two links per person, hardcoded for a one-off page
   const LINKS = {
-    eshed: { bit: "REPLACE_ESHED_BIT", paybox: "REPLACE_ESHED_PAYBOX" },
-    maya:  { bit: "REPLACE_MAYA_BIT",  paybox: "REPLACE_MAYA_PAYBOX"  },
+    eshed: { bit: "REPLACE_ESHED_BIT", paybox: "REPLACE_ESHED_PAYBOX", card: "REPLACE_ESHED_CARD" },
+    maya:  { bit: "REPLACE_MAYA_BIT",  paybox: "REPLACE_MAYA_PAYBOX",  card: "REPLACE_MAYA_CARD"  },
   };
   const NAMES = { eshed: "אשד", maya: "מאיה" };
 
@@ -416,6 +430,7 @@
   const chosenPortrait = document.getElementById("chosen-portrait");
   const payBit = document.getElementById("pay-bit");
   const payPaybox = document.getElementById("pay-paybox");
+  const payCard = document.getElementById("pay-card");
 
   // a link nobody filled in yet must not navigate
   function setPay(el, href) {
@@ -447,6 +462,7 @@
       chosenPortrait.replaceChildren(target);
       setPay(payBit, LINKS[who].bit);
       setPay(payPaybox, LINKS[who].paybox);
+      setPay(payCard, LINKS[who].card);
 
       if (reduced()) { stepWho.hidden = true; stepHow.hidden = false; return; }
 
