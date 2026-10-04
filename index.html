@@ -236,9 +236,8 @@
 
   .pay .logo { width: auto; height: auto; max-height: 46px; max-width: 82%; display: block; }
 
-  .pay-card { flex-direction: row; gap: 14px; min-height: 0; padding: 16px 22px; }
-  .pay-card .mark { width: 40px; height: auto; color: var(--sage-deep); flex: none; }
-  .pay-card .label { font-family: "MayaFont", "Assistant", sans-serif; font-size: clamp(26px, 7vw, 32px); line-height: 1; color: var(--ink); }
+  .pay-card .mark { width: 46px; height: auto; color: var(--sage-deep); }
+  .pay-card .label { font-family: "MayaFont", "Assistant", sans-serif; font-size: clamp(22px, 5.6vw, 27px); line-height: 1.1; text-align: center; color: var(--ink); }
 
 
 
@@ -393,24 +392,22 @@
     <h2 class="prompt">איך תעדיפו להעביר</h2>
 
     <div class="pair">
-      <a class="pay" id="pay-bit" href="#">
-        <img class="logo" src="bit.webp" alt="bit" style="max-height:40px">
-      </a>
 
       <a class="pay" id="pay-paybox" href="#">
         <img class="logo" src="paybox.webp" alt="PayBox">
       </a>
+
+      <a class="pay pay-card" id="pay-card" href="#">
+        <svg class="mark" viewBox="0 0 48 34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2.5" y="3" width="43" height="28" rx="5"/>
+          <path d="M2.5 12h43"/>
+          <path d="M9 23h9"/>
+          <rect x="31" y="20" width="8" height="5.5" rx="1.5"/>
+        </svg>
+        <span class="label">תשלום באשראי</span>
+      </a>
     </div>
 
-    <a class="pay pay-card" id="pay-card" href="#">
-      <svg class="mark" viewBox="0 0 48 34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <rect x="2.5" y="3" width="43" height="28" rx="5"/>
-        <path d="M2.5 12h43"/>
-        <path d="M9 23h9"/>
-        <rect x="31" y="20" width="8" height="5.5" rx="1.5"/>
-      </svg>
-      <span class="label">תשלום באשראי</span>
-    </a>
 
     <button class="back" type="button" id="back">חזרה לבחירה</button>
   </section>
@@ -419,8 +416,8 @@
 <script>
   // ponytail: two links per person, hardcoded for a one-off page
   const LINKS = {
-    eshed: { bit: "REPLACE_ESHED_BIT", paybox: "REPLACE_ESHED_PAYBOX", card: "https://iplan.co.il/he-IL/guest/minisites/kKnXfQE/y2ZiLwtDU/credit_gifts/wizard/gifts/new/steps/amount/edit" },
-    maya:  { bit: "REPLACE_MAYA_BIT",  paybox: "https://3ydbh.app.link/SjWcQp2sXUb?_p=c11232dc90077af5ea038cfde9",  card: "https://iplan.co.il/he-IL/guest/minisites/kKnXfQE/y2ZiLwtDU/credit_gifts/wizard/gifts/new/steps/amount/edit"  },
+    eshed: { paybox: "REPLACE_ESHED_PAYBOX", card: "https://iplan.co.il/he-IL/guest/minisites/kKnXfQE/y2ZiLwtDU/credit_gifts/wizard/gifts/new/steps/amount/edit" },
+    maya:  {  paybox: "https://3ydbh.app.link/SjWcQp2sXUb?_p=c11232dc90077af5ea038cfde9",  card: "https://iplan.co.il/he-IL/guest/minisites/kKnXfQE/y2ZiLwtDU/credit_gifts/wizard/gifts/new/steps/amount/edit"  },
   };
   const NAMES = { eshed: "אשד", maya: "מאיה" };
 
@@ -428,7 +425,6 @@
   const stepHow = document.getElementById("step-how");
   const chosenName = document.getElementById("chosen-name");
   const chosenPortrait = document.getElementById("chosen-portrait");
-  const payBit = document.getElementById("pay-bit");
   const payPaybox = document.getElementById("pay-paybox");
   const payCard = document.getElementById("pay-card");
 
@@ -465,7 +461,6 @@
       chosenName.textContent = NAMES[who];
       const target = src.cloneNode(true);
       chosenPortrait.replaceChildren(target);
-      setPay(payBit, LINKS[who].bit);
       setPay(payPaybox, LINKS[who].paybox);
       setPay(payCard, LINKS[who].card);
 
