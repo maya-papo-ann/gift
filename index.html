@@ -182,7 +182,7 @@
     justify-items: center;
     pointer-events: none;
     background: radial-gradient(circle at 50% 50%, rgba(247,244,236,.95) 0, rgba(247,244,236,.8) 26%, rgba(247,244,236,0) 58%);
-    animation: thanks-out .5s ease 2.2s both;
+    animation: thanks-out .5s ease 2.6s both;
   }
   .thanks .heart { width: 110px; height: 110px; color: var(--ink); overflow: visible; }
   .thanks .heart path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw .9s cubic-bezier(.4,0,.3,1) both; }
@@ -393,16 +393,16 @@
     <h2 class="prompt">איך תעדיפו להעביר</h2>
 
     <div class="pair">
-      <a class="pay" id="pay-bit" href="#" target="_blank" rel="noopener">
+      <a class="pay" id="pay-bit" href="#">
         <img class="logo" src="bit.webp" alt="bit" style="max-height:40px">
       </a>
 
-      <a class="pay" id="pay-paybox" href="#" target="_blank" rel="noopener">
+      <a class="pay" id="pay-paybox" href="#">
         <img class="logo" src="paybox.webp" alt="PayBox">
       </a>
     </div>
 
-    <a class="pay pay-card" id="pay-card" href="#" target="_blank" rel="noopener">
+    <a class="pay pay-card" id="pay-card" href="#">
       <svg class="mark" viewBox="0 0 48 34" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <rect x="2.5" y="3" width="43" height="28" rx="5"/>
         <path d="M2.5 12h43"/>
@@ -436,7 +436,12 @@
   function setPay(el, href) {
     const ready = href && !href.startsWith("REPLACE_");
     el.href = ready ? href : "#";
-    el.onclick = (e) => { if (!ready) e.preventDefault(); sayThanks(); };
+    // the thank-you comes first, then the app opens: a same-tab move is never blocked, unlike a new tab
+    el.onclick = (e) => {
+      e.preventDefault();
+      sayThanks();
+      if (ready) setTimeout(() => { location.href = href; }, 1700);
+    };
   }
 
   // a small heart after the tap, while the app opens
